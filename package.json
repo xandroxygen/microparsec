@@ -1,0 +1,23 @@
+{
+  "name": "microparsec",
+  "version": "0.0.1",
+  "description": "Bare-bones text processing for keywords and regex",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xandroxygen/microparsec.git"
+  },
+  "keywords": ["parse", "nlp", "text", "regex"],
+  "author": "Xander Moffatt",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xandroxygen/microparsec/issues"
+  },
+  "homepage": "https://github.com/xandroxygen/microparsec#readme",
+  "devDependencies": {
+    "jest": "^21.2.1"
+  }
+}
