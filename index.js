@@ -40,6 +40,35 @@ module.exports = class Microparsec {
   }
 
   parse(text) {
-    return text
+    const result = this.parsers.reduce(findMatches, { leftovers: text })
+    return shapeResult(result)
   }
+}
+
+shapeResult = ({ matches, leftovers }) => {
+  return {
+    matches,
+    leftovers: leftovers.trim(),
+  }
+}
+
+findMatches = ({ leftovers }, parser) => {
+  return parser.keywords.reduce(extractMatches, {
+    matches: [],
+    leftovers,
+  })
+}
+
+extractMatches = ({ matches, leftovers }, keyword) => {
+  const index = leftovers.lastIndexOf(keyword)
+  let text = leftovers
+  if (index !== -1) {
+    matches.push(keyword)
+    text = extractWord(leftovers, index, keyword.length)
+  }
+  return { matches, leftovers: text }
+}
+
+extractWord = (str, index, length) => {
+  return str.substr(0, index) + str.substr(index + length)
 }

@@ -46,11 +46,32 @@ describe("constructor", () => {
 
 describe("parse", () => {
   let m
+  const expectParsedText = (m, input, output) => {
+    const result = m.parse(input)
+    expect(result.leftovers).toBe(output)
+  }
+
   beforeEach(() => {
-    m = new Microparsec([{ name: "Parser 1", keywords: ["test"] }])
+    m = new Microparsec([{ name: "Test 1", keywords: ["test", "?"] }])
   })
-  test("returns text", () => {
-    const text = "Hello World!"
-    expect(m.parse(text)).toBe(text)
+
+  test("returns text without matches", () => {
+    expectParsedText(m, "Hello World!", "Hello World!")
+  })
+
+  test("trims whitespace from output", () => {
+    expectParsedText(m, "the     test", "the")
+  })
+
+  test("recognizes one keyword", () => {
+    expectParsedText(m, "This is a test", "This is a")
+  })
+
+  test("recognizes multiple keywords", () => {
+    expectParsedText(m, "This? is a test", "This is a")
+  })
+
+  test("extracts last occurrence of keyword", () => {
+    expectParsedText(m, "test hello test", "test hello")
   })
 })
