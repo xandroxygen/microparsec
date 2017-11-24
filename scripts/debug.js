@@ -1,14 +1,10 @@
 const Microparsec = require("../index")
 
-const text = "Hello World!?"
+const text = "Hello World!? wheee wheee"
 const parsers = [
   {
     name: "Goodbye",
-    keywords: ["Hello", "Hi"],
-  },
-  {
-    name: "What the",
-    keywords: ["heck"],
+    keywords: [/ee+/],
   },
 ]
 const parser = new Microparsec(parsers)

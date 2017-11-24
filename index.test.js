@@ -129,4 +129,26 @@ describe("parse", () => {
       expectKeywords(m, "heckin heck", ["heck"])
     })
   })
+
+  describe("regex keywords", () => {
+    beforeEach(() => {
+      m = new Microparsec([
+        { name: "Regex", keywords: [/test/, /^Hello/, /ee+/] },
+      ])
+    })
+
+    test("returns text without matches", () => {
+      expectParsedText(m, "Doesn't match", "Doesn't match")
+    })
+
+    test("matches regex keywords directly", () => {
+      expectParsedText(m, "test this", "this")
+      expectParsedText(m, "Hello Hello World", "Hello World")
+      expectParsedText(m, "Wheeeee", "Wh")
+    })
+
+    test("returns keywords match, not keywords themselves", () => {
+      expectKeywords(m, "Wheee", ["eee"])
+    })
+  })
 })

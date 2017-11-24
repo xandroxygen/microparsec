@@ -77,15 +77,21 @@ findMatches = ({ allMatches, leftovers }, parser) => {
 }
 
 extractMatches = ({ matches, leftovers }, keyword) => {
-  const escaped = escapeRegex(keyword)
-  const regex = new RegExp(`\\b${escaped}\\b(?!.*\\b${escaped}\\b)`, "i")
+  const regex = buildRegex(keyword)
   const match = leftovers.match(regex)
-  let text = leftovers
+  const text = match ? leftovers.replace(regex, "") : leftovers
   if (match) {
-    matches.push(keyword)
-    text = leftovers.replace(regex, "")
+    matches.push(match.pop())
   }
   return { matches, leftovers: text }
+}
+
+buildRegex = keyword => {
+  if (typeof keyword === "string") {
+    const escaped = escapeRegex(keyword)
+    return new RegExp(`\\b${escaped}\\b(?!.*\\b${escaped}\\b)`, "i")
+  }
+  return keyword
 }
 
 escapeRegex = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")
