@@ -44,16 +44,28 @@ module.exports = class Microparsec {
       allMatches: [],
       leftovers: text,
     })
-    return shapeResult(result)
+    return [result]
+      .map(renameMatches)
+      .map(removeEmptyMatches)
+      .map(trimWhitespace)
+      .reduce(result => result)
   }
 }
 
-shapeResult = ({ allMatches, leftovers }) => {
-  return {
-    matches: allMatches.filter(m => m.matches.length > 0),
-    leftovers: leftovers.trim().replace(/  +/g, " "),
-  }
-}
+removeEmptyMatches = result => ({
+  ...result,
+  matches: result.matches.filter(m => m.matches.length > 0),
+})
+
+trimWhitespace = result => ({
+  ...result,
+  leftovers: result.leftovers.trim().replace(/  +/g, " "),
+})
+
+renameMatches = ({ allMatches, leftovers }) => ({
+  matches: allMatches,
+  leftovers,
+})
 
 findMatches = ({ allMatches, leftovers }, parser) => {
   const result = parser.keywords.reduce(extractMatches, {
@@ -65,24 +77,15 @@ findMatches = ({ allMatches, leftovers }, parser) => {
 }
 
 extractMatches = ({ matches, leftovers }, keyword) => {
-  const index = findLastInString(leftovers, keyword)
+  const escaped = escapeRegex(keyword)
+  const regex = new RegExp(`\\b${escaped}\\b(?!.*\\b${escaped}\\b)`, "i")
+  const match = leftovers.match(regex)
   let text = leftovers
-  if (index !== -1) {
+  if (match) {
     matches.push(keyword)
-    text = extractWord(leftovers, index, keyword.length)
+    text = leftovers.replace(regex, "")
   }
   return { matches, leftovers: text }
 }
 
-findLastInString = (haystack, needle) => {
-  const escaped = escapeRegex(needle)
-  const regex = new RegExp(`\\b${escaped}\\b(?!.*\\b${escaped}\\b)`, "i")
-  const match = haystack.match(regex)
-  return match ? match.index : -1
-}
-
 escapeRegex = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")
-
-extractWord = (str, index, length) => {
-  return str.substr(0, index) + str.substr(index + length)
-}

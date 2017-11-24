@@ -54,10 +54,7 @@ describe("parse", () => {
   const expectKeywords = (m, input, ...keywords) => {
     const result = m.parse(input)
     const matches = result.matches.map(m => m.matches)
-    const difference = matches.filter(m => {
-      return m.every(n => keywords.includes(n))
-    })
-    expect(difference.length).toBeLessThanOrEqual(0)
+    expect(matches).toEqual(expect.arrayContaining(keywords))
   }
 
   describe("one parser", () => {
@@ -128,7 +125,7 @@ describe("parse", () => {
 
     test("returns keywords in lists when matched", () => {
       expectKeywords(m, "test hello hi", ["test"], ["hello", "hi"])
-      expectKeywords(m, "hello hi I like to test things", ["test"], ["hello"])
+      expectKeywords(m, "hello I like to test things", ["test"], ["hello"])
       expectKeywords(m, "heckin heck", ["heck"])
     })
   })
