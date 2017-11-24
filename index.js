@@ -40,27 +40,32 @@ module.exports = class Microparsec {
   }
 
   parse(text) {
-    const result = this.parsers.reduce(findMatches, { leftovers: text })
+    const result = this.parsers.reduce(findMatches, {
+      allMatches: [],
+      leftovers: text,
+    })
     return shapeResult(result)
   }
 }
 
-shapeResult = ({ matches, leftovers }) => {
+shapeResult = ({ allMatches, leftovers }) => {
   return {
-    matches,
-    leftovers: leftovers.trim(),
+    matches: allMatches.filter(m => m.matches.length > 0),
+    leftovers: leftovers.trim().replace(/  +/g, " "),
   }
 }
 
-findMatches = ({ leftovers }, parser) => {
-  return parser.keywords.reduce(extractMatches, {
+findMatches = ({ allMatches, leftovers }, parser) => {
+  const result = parser.keywords.reduce(extractMatches, {
     matches: [],
     leftovers,
   })
+  allMatches.push({ name: parser.name, matches: result.matches })
+  return { allMatches, leftovers: result.leftovers }
 }
 
 extractMatches = ({ matches, leftovers }, keyword) => {
-  const index = leftovers.lastIndexOf(keyword)
+  const index = findLastInString(leftovers, keyword)
   let text = leftovers
   if (index !== -1) {
     matches.push(keyword)
@@ -68,6 +73,15 @@ extractMatches = ({ matches, leftovers }, keyword) => {
   }
   return { matches, leftovers: text }
 }
+
+findLastInString = (haystack, needle) => {
+  const escaped = escapeRegex(needle)
+  const regex = new RegExp(`\\b${escaped}\\b(?!.*\\b${escaped}\\b)`, "i")
+  const match = haystack.match(regex)
+  return match ? match.index : -1
+}
+
+escapeRegex = s => s.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")
 
 extractWord = (str, index, length) => {
   return str.substr(0, index) + str.substr(index + length)

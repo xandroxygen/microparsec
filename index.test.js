@@ -51,27 +51,85 @@ describe("parse", () => {
     expect(result.leftovers).toBe(output)
   }
 
-  beforeEach(() => {
-    m = new Microparsec([{ name: "Test 1", keywords: ["test", "?"] }])
+  const expectKeywords = (m, input, ...keywords) => {
+    const result = m.parse(input)
+    const matches = result.matches.map(m => m.matches)
+    const difference = matches.filter(m => {
+      return m.every(n => keywords.includes(n))
+    })
+    expect(difference.length).toBeLessThanOrEqual(0)
+  }
+
+  describe("one parser", () => {
+    beforeEach(() => {
+      m = new Microparsec([{ name: "Test 1", keywords: ["test", "heck"] }])
+    })
+
+    test("returns text without matches", () => {
+      expectParsedText(m, "Hello World!", "Hello World!")
+    })
+
+    test("trims whitespace from output", () => {
+      expectParsedText(m, "the     test", "the")
+    })
+
+    test("recognizes one keyword", () => {
+      expectParsedText(m, "This is a test", "This is a")
+    })
+
+    test("recognizes multiple keywords", () => {
+      expectParsedText(m, "This heck is a test", "This is a")
+    })
+
+    test("extracts last occurrence of keyword", () => {
+      expectParsedText(m, "test hello test", "test hello")
+    })
+
+    test("only extracts keywords that are words", () => {
+      expectParsedText(m, "testing", "testing")
+    })
+
+    test("recognizes case-insensitive keywords", () => {
+      expectParsedText(m, "Test this", "this")
+    })
+
+    test("returns keywords when matched", () => {
+      expectKeywords(m, "test hello", ["test"])
+    })
   })
 
-  test("returns text without matches", () => {
-    expectParsedText(m, "Hello World!", "Hello World!")
-  })
+  describe("multiple parsers", () => {
+    beforeEach(() => {
+      m = new Microparsec([
+        {
+          name: "Testing",
+          keywords: ["test"],
+        },
+        {
+          name: "Goodbye",
+          keywords: ["hello", "hi"],
+        },
+        {
+          name: "What the",
+          keywords: ["heck"],
+        },
+      ])
+    })
 
-  test("trims whitespace from output", () => {
-    expectParsedText(m, "the     test", "the")
-  })
+    test("returns text without matches", () => {
+      expectParsedText(m, "This text doesn't match", "This text doesn't match")
+      expectParsedText(m, "testing doesn't count", "testing doesn't count")
+    })
 
-  test("recognizes one keyword", () => {
-    expectParsedText(m, "This is a test", "This is a")
-  })
+    test("recognizes keywords from multiple parsers", () => {
+      expectParsedText(m, "Hello it's test heck", "it's")
+      expectParsedText(m, "test test hello test", "test test")
+    })
 
-  test("recognizes multiple keywords", () => {
-    expectParsedText(m, "This? is a test", "This is a")
-  })
-
-  test("extracts last occurrence of keyword", () => {
-    expectParsedText(m, "test hello test", "test hello")
+    test("returns keywords in lists when matched", () => {
+      expectKeywords(m, "test hello hi", ["test"], ["hello", "hi"])
+      expectKeywords(m, "hello hi I like to test things", ["test"], ["hello"])
+      expectKeywords(m, "heckin heck", ["heck"])
+    })
   })
 })
