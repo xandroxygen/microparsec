@@ -16,7 +16,7 @@
   "bugs": {
     "url": "https://github.com/xandroxygen/microparsec/issues"
   },
-  "homepage": "https://github.com/xandroxygen/microparsec#readme",
+  "homepage": "https://xandroxygen.github.io/microparsec",
   "devDependencies": {
     "jest": "^21.2.1"
   }
