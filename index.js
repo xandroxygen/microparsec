@@ -11,6 +11,8 @@ isStringOrRegex = s => {
   return typeof s === "string" || s instanceof RegExp
 }
 
+let matchCount
+
 module.exports = class Microparsec {
   constructor(parsers) {
     // can accept:
@@ -40,6 +42,7 @@ module.exports = class Microparsec {
   }
 
   parse(text) {
+    matchCount = 0
     const result = this.parsers.reduce(findMatches, {
       allMatches: [],
       leftovers: text,
@@ -47,6 +50,7 @@ module.exports = class Microparsec {
     return [result]
       .map(renameMatches)
       .map(removeEmptyMatches)
+      .map(createInterpolated)
       .map(trimWhitespace)
       .reduce(result => result)
   }
@@ -60,6 +64,12 @@ removeEmptyMatches = result => ({
 trimWhitespace = result => ({
   ...result,
   leftovers: result.leftovers.trim().replace(/  +/g, " "),
+})
+
+createInterpolated = result => ({
+  ...result,
+  interpolated: result.leftovers,
+  leftovers: result.leftovers.replace(/%[0-9]+/g, ""),
 })
 
 renameMatches = ({ allMatches, leftovers }) => ({
@@ -79,11 +89,15 @@ findMatches = ({ allMatches, leftovers }, parser) => {
 extractMatches = ({ matches, leftovers }, keyword) => {
   const regex = buildRegex(keyword)
   const match = leftovers.match(regex)
-  const text = match ? leftovers.replace(regex, "") : leftovers
+  const replaceWith = `%${matchCount++}`
+  const text = match ? leftovers.replace(regex, replaceWith) : leftovers
   if (match) {
-    matches.push(match.pop())
+    matches.push({
+      match: match.pop(),
+      replaceWith,
+    })
   }
-  return { matches, leftovers: text }
+  return { matches, replaceWith, leftovers: text }
 }
 
 buildRegex = keyword => {

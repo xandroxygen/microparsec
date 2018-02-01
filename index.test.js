@@ -51,9 +51,14 @@ describe("parse", () => {
     expect(result.leftovers).toBe(output)
   }
 
+  const expectInterpolatedText = (m, input, output) => {
+    const result = m.parse(input)
+    expect(result.interpolated).toBe(output)
+  }
+
   const expectKeywords = (m, input, ...keywords) => {
     const result = m.parse(input)
-    const matches = result.matches.map(m => m.matches)
+    const matches = result.matches.map(m => m.matches.map(n => n.match))
     expect(matches).toEqual(expect.arrayContaining(keywords))
   }
 
@@ -72,10 +77,12 @@ describe("parse", () => {
 
     test("recognizes one keyword", () => {
       expectParsedText(m, "This is a test", "This is a")
+      expectInterpolatedText(m, "This is a test", "This is a %0")
     })
 
     test("recognizes multiple keywords", () => {
       expectParsedText(m, "This heck is a test", "This is a")
+      expectInterpolatedText(m, "This heck is a test", "This %1 is a %0")
     })
 
     test("extracts last occurrence of keyword", () => {
