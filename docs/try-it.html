@@ -38,7 +38,7 @@
 
 <body>
   <div class="container">
-    <h1><code>microparsec</code> Live Demo</h1>
+    <h1><code>microparsec</code></h1>
 
       <div class="row flex-row">
         <div class="five columns">
@@ -79,7 +79,7 @@
 
 
       submit.addEventListener("click", () => {
-        const keywords = keywordEl.value.split(/\s+/)
+        const keywords = keywordEl.value.split(/,\s+/)
         const textToParse = parseTextEl.value
 
         const parser = new window.exports(keywords)
