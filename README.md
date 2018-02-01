@@ -6,7 +6,7 @@ Extract words, special characters, or regex matches from strings of test using
 this simple text parser. Inspired by Todoist's Quick Add feature, which uses NLP
 (Natural Language Processing) to extract dates, projects, and other keywords.
 
-Give `microparsec` lists of keywords, regex, or special characters you want
+Give `microparsec` lists of keywords or regex you want
 found and extracted, and some text to parse. It will return lists of keywords it
 found or regex it matched, along with the rest of the string input.
 
@@ -83,24 +83,34 @@ console.log(result)
   matches: [
     {
       name: "Default",
-      matches: ["Hello"]
+      matches: [{
+        match: "Hello",
+        replaceWith: "%0"
+      }]
     }
   ],
-  leftovers: "World!"
+  leftovers: "World!",
+  interpolated: "%0 World!"
 }
 */
 ```
 
 Any parser that had a match is returned with all its matches, and the rest of
 the unmatched string is returned as `leftovers`, trimmed of excess whitespace.
+
+The original parsed text is returned as `interpolated`, with the matched keywords
+replaced by symbols such as `%0` or `%1`. These symbols correspond to the
+`replaceWith` field in each match object.
+
 Parsers without a match do not appear in the result. Matches against regex
 keywords return the text that matched, not the regex itself.
 
 ```js
 const parser = new Microparsec([
   { name: "One", keywords: [/ee+/] },
-  { name: "Two", keywords: ["What", "the"]}
-  { name: "Three", keywords: ["no", "matches"]}
+  { name: "Two", keywords: ["What", "the"] },
+  { name: "Three", keywords: ["no", "matches"] },
+])
 const result = parser.parse("What the wheeeee is that?")
 console.log(result)
 /*
@@ -108,17 +118,28 @@ console.log(result)
   matches: [
     {
       name: "One",
-      matches: ["eeeee"]
+      matches: [{
+        match: "eeeee",
+        replaceWith: "%0"
+      }]
     },
     {
       name: "Two",
-      matches: ["What", "the"]
+      matches: [
+      {
+        match: "What",
+        replaceWith: "%1"
+      },
+      {
+        match: "the",
+        replaceWith: "%2"
+      }]
     }
   ],
-  leftovers: "is that?"
+  leftovers: "wh is that?",
+  interpolated: "%1 %2 wh%0 is that?"
 }
 */
-])
 ```
 
 ## Development
